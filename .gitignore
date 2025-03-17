@@ -1,0 +1,24 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts (if you're using a build step, e.g., Next.js)
+dist/
+build/
+.next/
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Dependency lock files (optional, if you don't want to commit them)
+package-lock.json
