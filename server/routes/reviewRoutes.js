@@ -5,10 +5,10 @@ const { createReview,getAllReviews,getReviewById,updateReview,deleteReview } = r
 const authenticateUser = require('../middleware/auth'); // Assumes user authentication middleware
 
 // CRUD Routes
-router.post('/', authenticateUser, createReview);          // Create a new review
-router.get('/', getAllReviews);                            // Get all reviews (public, filterable by product)
-router.get('/:id', getReviewById);                        // Get a specific review (public)
-router.put('/:id', authenticateUser, updateReview);       // Update a review
-router.delete('/:id', authenticateUser, deleteReview);    // Delete a review
+router.post('/review', authenticateUser, createReview);          // Create a new review
+router.get('/review', getAllReviews);                            // Get all reviews (public, filterable by product)
+router.get('/review:id', getReviewById);                        // Get a specific review (public)
+router.put('/review:id', authenticateUser, updateReview);       // Update a review
+router.delete('/review:id', authenticateUser, deleteReview);    // Delete a review
 
 module.exports = router;

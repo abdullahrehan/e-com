@@ -5,10 +5,10 @@ const { createCategory,getAllCategories,getCategoryById,updateCategory,deleteCat
 const authenticateAdmin = require('../middleware/auth');
 
 // CRUD Routes
-router.post('/', authenticateAdmin, createCategory);         // Create
-router.get('/', getAllCategories);                           // Read All
-router.get('/:id', getCategoryById);                         // Read One
-router.put('/:id', authenticateAdmin, updateCategory);       // Update
-router.delete('/:id', authenticateAdmin, deleteCategory);    // Delete
+router.post('/product/category', authenticateAdmin, createCategory);         // Create
+router.get('/product/category', getAllCategories);                           // Read All
+router.get('/product/category:id', getCategoryById);                         // Read One
+router.put('/product/category:id', authenticateAdmin, updateCategory);       // Update
+router.delete('/product/category:id', authenticateAdmin, deleteCategory);    // Delete
 
 module.exports = router;

@@ -5,10 +5,10 @@ const {  getCart,addItemToCart,updateItemQuantity,removeItemFromCart,clearCart }
 const authenticateUser = require('../middleware/auth'); // Assumes authentication middleware
 
 // Cart Routes
-router.get('/', authenticateUser, getCart);                   // Get cart
-router.post('/add', authenticateUser, addItemToCart);        // Add item to cart
-router.put('/update', authenticateUser, updateItemQuantity); // Update item quantity
-router.delete('/remove', authenticateUser, removeItemFromCart); // Remove item from cart
-router.delete('/clear', authenticateUser, clearCart);        // Clear cart
+router.get('/user/cart', authenticateUser, getCart);                   // Get cart
+router.post('/user/cart', authenticateUser, addItemToCart);        // Add item to cart
+router.put('/user/cart', authenticateUser, updateItemQuantity); // Update item quantity
+router.delete('/user/cart', authenticateUser, removeItemFromCart); // Remove item from cart
+router.delete('/user/cart/clear', authenticateUser, clearCart);        // Clear cart
 
 module.exports = router;

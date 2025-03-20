@@ -6,10 +6,10 @@ const authenticateAdmin = require('../middleware/auth');
 const upload = require('../middleware/multer');
 
 // CRUD Routes
-router.post('/', authenticateAdmin, upload.array('images', 5), createProduct);         // Create
-router.get('/', getAllProducts);                                                       // Read All
-router.get('/:id', getProductById);                                                    // Read One
-router.put('/:id', authenticateAdmin, upload.array('images', 5), updateProduct);       // Update
-router.delete('/:id', authenticateAdmin, deleteProduct);                               // Delete
+router.post('/product', authenticateAdmin, upload.array('images', 5), createProduct);         // Create
+router.get('/product', getAllProducts);                                                       // Read All
+router.get('/product:id', getProductById);                                                    // Read One
+router.put('/product:id', authenticateAdmin, upload.array('images', 5), updateProduct);       // Update
+router.delete('/product:id', authenticateAdmin, deleteProduct);                               // Delete
 
 module.exports = router;

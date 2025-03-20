@@ -5,10 +5,10 @@ const { createInventoryTransaction,getAllInventoryTransactions,getInventoryTrans
 const authenticateAdmin = require('../middleware/auth'); // Assumes admin-only access
 
 // CRUD Routes
-router.post('/', authenticateAdmin, createInventoryTransaction);          // Create a new transaction
-router.get('/', authenticateAdmin, getAllInventoryTransactions);         // Get all transactions
-router.get('/:id', authenticateAdmin, getInventoryTransactionById);      // Get a specific transaction
-router.put('/:id', authenticateAdmin, updateInventoryTransaction);       // Update a transaction
-router.delete('/:id', authenticateAdmin, deleteInventoryTransaction);    // Delete a transaction
+router.post('/product/inventory', authenticateAdmin, createInventoryTransaction);          // Create a new transaction
+router.get('/product/inventory', authenticateAdmin, getAllInventoryTransactions);         // Get all transactions
+router.get('/product/inventory:id', authenticateAdmin, getInventoryTransactionById);      // Get a specific transaction
+router.put('/product/inventory:id', authenticateAdmin, updateInventoryTransaction);       // Update a transaction
+router.delete('/product/inventory:id', authenticateAdmin, deleteInventoryTransaction);    // Delete a transaction
 
 module.exports = router;

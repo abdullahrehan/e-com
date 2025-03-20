@@ -6,10 +6,10 @@ const authenticateUser = require('../middleware/auth');
 const authenticateAdmin = require('../middleware/auth');
 
 // CRUD Routes
-router.post('/', authenticateUser, createOrder);          // Create (User)
-router.get('/', authenticateUser, getAllOrders);          // Read All (User/Admin)
-router.get('/:id', authenticateUser, getOrderById);       // Read One (User/Admin)
-router.put('/:id', authenticateAdmin, updateOrder);       // Update (Admin)
-router.delete('/:id', authenticateAdmin, deleteOrder);    // Delete (Admin)
+router.post('/order', authenticateUser, createOrder);          // Create (User)
+router.get('/order', authenticateUser, getAllOrders);          // Read All (User/Admin)
+router.get('/order:id', authenticateUser, getOrderById);       // Read One (User/Admin)
+router.put('/order:id', authenticateAdmin, updateOrder);       // Update (Admin)
+router.delete('/order:id', authenticateAdmin, deleteOrder);    // Delete (Admin)
 
 module.exports = router;
