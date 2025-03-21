@@ -7,7 +7,7 @@ const { generateVerificationCode, sendVerificationEmail, sendResetPasswordEmail 
 // Create User
 const createUser = async (req, res) => {
     try {
-        const { name, email, password, role, adminRole } = req.body;
+        const { name, email, password, role, adminRole } = req. body;
 
         // Input validation
         if (!name || !email || !password) {
@@ -37,7 +37,7 @@ const createUser = async (req, res) => {
             name,
             email,
             password, // Plain password
-            profilePicture: req.body.profilePicture || '',
+            profilePicture: req.body.profilePicture || undefined,
             emailVerified: false,
             verificationToken: verificationCode,
             role: role || 'user',
@@ -66,7 +66,7 @@ const createUser = async (req, res) => {
         return res.status(201).json({
             status: 'success',
             message: 'User created successfully. Please check your email for verification.',
-            data: { user: userResponse }
+            // data: { user: userResponse }
         });
     } catch (error) {
         console.error('Error creating user:', error);
