@@ -96,7 +96,7 @@ const getReviewById = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: 'Review retrieved successfully',
-      data: { review }
+      data: { ...review._doc }
     });
   } catch (error) {
     console.error('Error fetching review:', error);
@@ -138,7 +138,7 @@ const updateReview = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: 'Review updated successfully',
-      data: { review }
+      data: { ...review._doc }
     });
   } catch (error) {
     console.error('Error updating review:', error);
@@ -168,8 +168,7 @@ const deleteReview = async (req, res) => {
 
     return res.status(200).json({
       status: true,
-      message: 'Review deleted successfully',
-      data: { deletedReview: { id: review._id } }
+      message: 'Review deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting review:', error);

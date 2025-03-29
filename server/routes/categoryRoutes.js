@@ -2,13 +2,13 @@
 const express = require('express');
 const router = express.Router();
 const { createCategory,getAllCategories,getCategoryById,updateCategory,deleteCategory } = require('../controllers/categoryController');
-const authenticateAdmin = require('../middleware/auth');
+const { restrictToAdmin } = require('../middleware/adminAuth');
 
 // CRUD Routes
-router.post('/product/category', authenticateAdmin, createCategory);         // Create
+router.post('/product/category', restrictToAdmin, createCategory);         // Create
 router.get('/product/category', getAllCategories);                           // Read All
-router.get('/product/category:id', getCategoryById);                         // Read One
-router.put('/product/category:id', authenticateAdmin, updateCategory);       // Update
-router.delete('/product/category:id', authenticateAdmin, deleteCategory);    // Delete
+router.get('/product/category/:id', getCategoryById);                         // Read One
+router.put('/product/category/:id', restrictToAdmin, updateCategory);       // Update
+router.delete('/product/category/:id', restrictToAdmin, deleteCategory);    // Delete
 
-module.exports = router;
+module.exports = router; 

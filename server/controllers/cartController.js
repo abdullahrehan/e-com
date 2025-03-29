@@ -13,7 +13,7 @@ const getCart = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: 'Cart retrieved successfully',
-      data: { cart }
+      data: { ...cart._doc }
     });
   } catch (error) {
     console.error('Error fetching cart:', error);
@@ -26,6 +26,7 @@ const addItemToCart = async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
     const user = req.user._id;
+    console.log(user,'user')
 
     // Validate productId
     if (!mongoose.Types.ObjectId.isValid(productId)) {
@@ -44,6 +45,7 @@ const addItemToCart = async (req, res) => {
     }
 
     let cart = await Cart.findOne({ user });
+    console.log(cart)
     if (!cart) {
       cart = await Cart.create({ user, items: [{ product: productId, quantity }] });
     } else {
@@ -59,7 +61,7 @@ const addItemToCart = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: 'Item added to cart successfully',
-      data: { cart }
+      data: { ...cart._doc }
     });
   } catch (error) {
     console.error('Error adding item to cart:', error);

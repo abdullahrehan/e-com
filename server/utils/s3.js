@@ -1,4 +1,4 @@
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand,DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
 const sharp = require('sharp');
 
@@ -74,4 +74,31 @@ const uploadFileToS3 = async (file) => {
   }
 };
 
-module.exports = { uploadFileToS3 };
+const deleteFileFromS3 = async (url) => {
+  try {
+    // Parse the URL to extract bucket, region, and key
+    const urlParts = url.replace('https://', '').split('/');
+    const [bucketRegionPart, ...keyParts] = urlParts;
+    
+    // Extract bucket name and region from the URL
+    const [bucketName, , region] = bucketRegionPart.split('.');
+    const key = keyParts.join('/');
+
+    // Create delete command
+    const deleteCommand = new DeleteObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: key
+    });
+
+    // Execute deletion
+    await s3Client.send(deleteCommand);
+    console.log(`Successfully deleted: ${key}`);
+    
+  } catch (error) {
+    console.error('Error deleting file from S3:', error);
+    throw error;
+  }
+};
+
+
+module.exports = { uploadFileToS3 , deleteFileFromS3 };

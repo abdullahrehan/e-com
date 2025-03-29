@@ -2,6 +2,7 @@
 // Import all models
 const User = require('./schemas/User');
 const Address = require('./schemas/Address');
+const Cart = require('./schemas/Cart');
 const PaymentMethod = require('./schemas/Payment');
 const Product = require('./schemas/Product');
 const Category = require('./schemas/Category');
@@ -17,6 +18,7 @@ const Inventory = require('./schemas/Inventory');
 // Export all models
 module.exports = {
   User,
+  Cart,
   Address,
   PaymentMethod,
   Product,

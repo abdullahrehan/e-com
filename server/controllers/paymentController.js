@@ -1,45 +1,53 @@
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { PaymentMethod } = require('../models/index');
+
 const createPaymentMethod = async (req, res) => {
-    try {
-      const { type, paymentGatewayToken, last4, isDefault } = req.body;
-      const user = req.user._id; // Assuming user is set by authenticateUser middleware
-  
-      if (!type || !['Credit Card', 'Debit Card', 'PayPal'].includes(type)) {
-        return res.status(400).json({ status: false, message: 'Invalid payment type', data: {} });
-      }
-  
-      if (!paymentGatewayToken) {
-        return res.status(400).json({ status: false, message: 'Payment gateway token is required', data: {} });
-      }
-  
-      if (last4 && (last4.length !== 4 || isNaN(last4))) {
-        return res.status(400).json({ status: false, message: 'Last 4 digits must be a 4-digit number', data: {} });
-      }
-  
-      if (isDefault) {
-        await PaymentMethod.updateMany({ user, isDefault: true }, { isDefault: false });
-      }
-  
-      const paymentMethodData = {
-        user,
-        type,
-        paymentGatewayToken,
-        last4,
-        isDefault: isDefault || false
-      };
-  
-      const paymentMethod = await PaymentMethod.create(paymentMethodData);
-  
-      return res.status(201).json({
-        status: true,
-        message: 'Payment method created successfully',
-        data: { paymentMethod }
-      });
-    } catch (error) {
-      console.error('Error creating payment method:', error);
-      return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
+  try {
+    const { type, paymentGatewayToken, last4, isDefault } = req.body;
+    const user = req.user._id;
+
+    if (!type || !['Credit Card', 'Debit Card'].includes(type)) { // Remove PayPal if only using Stripe
+      return res.status(400).json({ status: false, message: 'Invalid payment type', data: {} });
     }
-  };
-  
+
+    if (!paymentGatewayToken) {
+      return res.status(400).json({ status: false, message: 'Payment method ID is required', data: {} });
+    }
+
+    // Verify the Payment Method with Stripe
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentGatewayToken);
+    if (!paymentMethod || paymentMethod.type !== type.toLowerCase().replace(' ', '_')) {
+      return res.status(400).json({ status: false, message: 'Invalid payment method', data: {} });
+    }
+
+    if (last4 && last4 !== paymentMethod.card.last4) {
+      return res.status(400).json({ status: false, message: 'Last 4 digits mismatch', data: {} });
+    }
+
+    if (isDefault) {
+      await PaymentMethod.updateMany({ user, isDefault: true }, { isDefault: false });
+    }
+
+    const paymentMethodData = {
+      user,
+      type,
+      paymentGatewayToken, // Stripe Payment Method ID (pm_xxx)
+      last4: paymentMethod.card.last4,
+      isDefault: isDefault || false,
+    };
+
+    const newPaymentMethod = await PaymentMethod.create(paymentMethodData);
+
+    return res.status(201).json({
+      status: true,
+      message: 'Payment method created successfully',
+      data: { paymentMethod: newPaymentMethod },
+    });
+  } catch (error) {
+    console.error('Error creating payment method:', error);
+    return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
+  }
+};
   // Get All Payment Methods
   const getAllPaymentMethods = async (req, res) => {
     try {
@@ -165,13 +173,13 @@ const createPaymentMethod = async (req, res) => {
         return res.status(404).json({ status: false, message: 'Payment method not found', data: {} });
       }
   
-      // Process payment with Stripe (example)
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: 'usd',
         payment_method: paymentMethod.paymentGatewayToken,
         confirmation_method: 'manual',
-        confirm: true
+        confirm: true,
+        metadata: { orderId: orderId.toString(), userId: user.toString() },
       });
   
       const paymentData = {
@@ -179,8 +187,8 @@ const createPaymentMethod = async (req, res) => {
         orderId,
         paymentMethodId,
         amount,
-        status: paymentIntent.status === 'succeeded' ? 'Succeeded' : 'Failed',
-        gatewayPaymentId: paymentIntent.id
+        status: paymentIntent.status === 'succeeded' ? 'Succeeded' : 'Pending',
+        gatewayPaymentId: paymentIntent.id,
       };
   
       const payment = await Payment.create(paymentData);
@@ -188,14 +196,16 @@ const createPaymentMethod = async (req, res) => {
       return res.status(201).json({
         status: true,
         message: 'Payment processed successfully',
-        data: { payment }
+        data: { payment },
       });
     } catch (error) {
+      if (error.type === 'StripeCardError') {
+        return res.status(400).json({ status: false, message: error.message, data: {} });
+      }
       console.error('Error processing payment:', error);
       return res.status(500).json({ status: false, message: 'Internal server error', data: {} });
     }
   };
-  
   // Get All Payments (User)
   const getAllPayments = async (req, res) => {
     try {
