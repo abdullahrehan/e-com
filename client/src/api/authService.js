@@ -52,3 +52,12 @@ export const verifyResetPasswordRequest = async (body) => {
     });
 };
 
+
+export const resetPasswordRequest = async (body) => {
+    return apiClient(`/auth/reset-password`, {
+        method: "PATCH",
+        requiresAuth: false,
+        body,
+    });
+};
+

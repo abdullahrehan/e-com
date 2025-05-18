@@ -8,14 +8,14 @@ export default function ProductsLayout({ children }) {
   const [user, loading] = useAuthState(auth)
   const router = useRouter()
   
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/login')
-      } 
+  // useEffect(() => {
+  //   if (!loading) {
+  //     if (!user) {
+  //       router.push('/login')
+  //     } 
       
-    }
-  }, [user, loading, router])
+  //   }
+  // }, [user, loading, router])
 
   if (loading) {
     return (

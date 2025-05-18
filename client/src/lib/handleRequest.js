@@ -27,7 +27,7 @@ const handleRequest = async (
       });
     }
 
-    return response;
+    return {data:response.data, message: response.message || 'Request successful', status: response.status=="success"};
   } catch (error) {
     if (showError) {
       const errorMessage = error.response?.data?.message || error.message || 'Something went wrong';

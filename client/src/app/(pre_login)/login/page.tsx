@@ -1,37 +1,129 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth"
-import { auth } from "@/app/firebase/config"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { FaEnvelope, FaLock, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link" // Import Link for client-side navigation
+import useAdmin from "../../../hooks/useAdmin"
+import useAuth from "../../../hooks/useAuth"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  
+  // Forgot Password States
+  const [forgotPasswordStep, setForgotPasswordStep] = useState(0)
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [verificationCode, setVerificationCode] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
-  const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth)
-
+  const { login, forgotPassword, verifyResetPassword, resetPassword} = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     try {
       e.preventDefault()
       setLoading(true)
-      const res = await signInWithEmailAndPassword(email, password)
-      localStorage.setItem("user", "true")
-      console.log(res)
-      setEmail("")
-      setPassword("")
-      router.push("/products")
+      const body = {
+        "email": email,
+        "password": password
+      }
+      const response = await login(body)
+      if (response.status) {
+        localStorage.setItem("authToken", response.data.token)
+        setEmail("")
+        setPassword("")
+        router.push("/products")
+      }
     } catch (error) {
       console.log(error)
       localStorage.setItem("user", "false")
     } finally {
       setLoading(false)
     }
+  }
+
+  // Handle Email Submission for Forgot Password
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotLoading(true)
+    setErrorMessage("")
+    try {
+      const response = await forgotPassword({ email: forgotEmail })
+      if (response.status) {
+        setForgotPasswordStep(2) // Show "code sent" message
+        setTimeout(() => setForgotPasswordStep(3), 5000) // Proceed after 5 seconds
+      } else {
+        setErrorMessage(response.message || "Failed to send verification code.")
+      }
+    } catch (error) {
+      setErrorMessage("An unexpected error occurred. Please try again.")
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  // Handle Verification Code Submission
+  const handleCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotLoading(true)
+    setErrorMessage("")
+    try {
+      const response = await verifyResetPassword({ email: forgotEmail, code: verificationCode })
+      if (response.status) {
+        setForgotPasswordStep(4) // Show "code verified" message
+        setTimeout(() => setForgotPasswordStep(5), 2000) // Proceed after 2 seconds
+      } else {
+        setErrorMessage(response.message || "Invalid verification code.")
+      }
+    } catch (error) {
+      setErrorMessage("An unexpected error occurred. Please try again.")
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  // Handle Password Reset Submission
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword !== confirmPassword) {
+      setErrorMessage("Passwords do not match.")
+      return
+    }
+    setForgotLoading(true)
+    setErrorMessage("")
+    try {
+      const response = await resetPassword({
+        email: forgotEmail,
+        code: verificationCode,
+        newPassword: newPassword
+      })
+      if (response.status) {
+        resetForgotPassword() // Close popup and reset states
+      } else {
+        setErrorMessage(response.message || "Failed to reset password.")
+      }
+    } catch (error) {
+      setErrorMessage("An unexpected error occurred. Please try again.")
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  // Reset Forgot Password States
+  const resetForgotPassword = () => {
+    setForgotPasswordStep(0)
+    setForgotEmail("")
+    setVerificationCode("")
+    setNewPassword("")
+    setConfirmPassword("")
+    setErrorMessage("")
   }
 
   return (
@@ -75,14 +167,15 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" loading={loading} loadingText="Signing in...">
               Sign in
             </Button>
-            {/* Forgot Password Link */}
+            {/* Forgot Password Button (Replaces Link) */}
             <div className="mt-2 text-right">
-              <Link
-                href="/forgot-password"
+              <button
+                type="button"
+                onClick={() => setForgotPasswordStep(1)}
                 className="text-sm text-gray-600 hover:underline focus:underline"
               >
                 Forgot Password?
-              </Link>
+              </button>
             </div>
           </div>
         </form>
@@ -121,6 +214,132 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={forgotPasswordStep > 0} onOpenChange={(open) => !open && resetForgotPassword()}>
+      <DialogContent className="min-h-[400px] p-6 bg-white rounded-lg shadow-lg max-w-sm mx-auto">
+        {/* Step 1: Enter Email */}
+        {forgotPasswordStep === 1 && (
+          <div className="space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-center">Forgot Password</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEmailSubmit} className="space-y-6">
+              <div className="flex items-center border-b-2 border-gray-300">
+                <FaEnvelope className="text-gray-500 mr-2" />
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                  disabled={forgotLoading}
+                  className="border-none focus:ring-0 w-full py-2"
+                />
+              </div>
+              {errorMessage && <p className="text-red-500 text-sm text-center">{errorMessage}</p>}
+              <Button type="submit" className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 rounded-lg" disabled={forgotLoading}>
+                {forgotLoading ? "Sending..." : "Send Verification Code"}
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {/* Step 2: Verification Code Sent Message */}
+        {forgotPasswordStep === 2 && (
+          <div className="text-center space-y-4">
+            <FaCheckCircle className="text-green-500 text-4xl mx-auto" />
+            <p className="text-lg text-gray-700">A verification code has been sent to your email.</p>
+            <Button
+              onClick={() => setForgotPasswordStep(3)}
+              className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 rounded-lg"
+            >
+              Proceed to Verify Code
+            </Button>
+          </div>
+        )}
+
+        {/* Step 3: Enter Verification Code */}
+        {forgotPasswordStep === 3 && (
+          <div className="space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-center">Enter Verification Code</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCodeSubmit} className="space-y-6">
+              <div className="flex items-center border-b-2 border-gray-300">
+                <FaLock className="text-gray-500 mr-2" />
+                <Input
+                  type="text"
+                  placeholder="Enter the code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  required
+                  disabled={forgotLoading}
+                  className="border-none focus:ring-0 w-full py-2"
+                />
+              </div>
+              {errorMessage && <p className="text-red-500 text-sm text-center">{errorMessage}</p>}
+              <Button type="submit" className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 rounded-lg" disabled={forgotLoading}>
+                {forgotLoading ? "Verifying..." : "Verify Code"}
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {/* Step 4: Code Verified Message */}
+        {forgotPasswordStep === 4 && (
+          <div className="text-center space-y-4">
+            <FaCheckCircle className="text-green-500 text-4xl mx-auto" />
+            <p className="text-lg text-gray-700">Code verified successfully.</p>
+            <Button
+              onClick={() => setForgotPasswordStep(5)}
+              className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 rounded-lg"
+            >
+              Proceed to Reset Password
+            </Button>
+          </div>
+        )}
+
+        {/* Step 5: Reset Password */}
+        {forgotPasswordStep === 5 && (
+          <div className="space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-center">Reset Password</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handlePasswordReset} className="space-y-6">
+              <div className="flex items-center border-b-2 border-gray-300">
+                <FaLock className="text-gray-500 mr-2" />
+                <Input
+                  type="password"
+                  placeholder="New Password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  disabled={forgotLoading}
+                  className="border-none focus:ring-0 w-full py-2"
+                />
+              </div>
+              <div className="flex items-center border-b-2 border-gray-300">
+                <FaLock className="text-gray-500 mr-2" />
+                <Input
+                  type="password"
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={forgotLoading}
+                  className="border-none focus:ring-0 w-full py-2"
+                />
+              </div>
+              {errorMessage && <p className="text-red-500 text-sm text-center">{errorMessage}</p>}
+              <Button type="submit" className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 rounded-lg" disabled={forgotLoading}>
+                {forgotLoading ? "Resetting..." : "Reset Password"}
+              </Button>
+            </form>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
     </div>
   )
 }

@@ -27,7 +27,18 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = ['http://localhost:3000']; // Add your frontend URL
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
@@ -51,7 +62,7 @@ app.use("/api",wishlistRoutes)
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
-});
+}); 
 
 const PORT = 80;
 app.listen(PORT, () => {

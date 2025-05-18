@@ -1,0 +1,36 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+    0
+    </div>
+    <button id="click">Click</button>
+  
+    <script>
+        const container = document.querySelector('.container');
+    
+        //on click the button the value in the container wiil be update like 0 , 1, 2
+
+        let count = 0;
+        const button = document.getElementById('click');
+        button.addEventListener('click', () => {
+            const newDiv = document.createElement('div');
+            newDiv.innerText = count;
+            count++;
+            container.appendChild(newDiv);
+        });
+
+        container.addEventListener('click', () => {
+            alert('New Div Clicked!');
+        });
+
+    </script>
+
+
+    
+</body>
+</html>

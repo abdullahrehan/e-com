@@ -11,3 +11,4 @@ router.delete('/admin/delete/:id', deleteUserById);
 
 
 module.exports = router;
+// http://localhost:3000/api/admin/users

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { signupRequest, signupAdminRequest, verifyEmailRequest, loginRequest, forgotPasswordRequest, verifyResetPasswordRequest, resetPasswordRequest } from "../api/authService";
+import { signupRequest, signupAdminRequest, verifyEmailRequest, loginRequest, forgotPasswordRequest, verifyResetPasswordRequest
+  , resetPasswordRequest 
+} from "../api/authService";
 import handleRequest from '@/lib/handleRequest';
 
 const useAuth = () => {
@@ -11,7 +13,7 @@ const useAuth = () => {
   const login = (body) => handleRequest(loginRequest,true,true, body);
   const forgotPassword = (body) => handleRequest(forgotPasswordRequest,true,true, body);
   const verifyResetPassword = (body) => handleRequest(verifyResetPasswordRequest,true,true, body);
-  const resetPassword = () => handleRequest(resetPasswordRequest,true,true);
+  const resetPassword = (body) => handleRequest(resetPasswordRequest,true,true,body);
 
   return {
     isLoading,

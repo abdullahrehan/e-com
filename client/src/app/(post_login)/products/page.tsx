@@ -18,19 +18,19 @@ export default function ProductsPage() {
   const router=useRouter()
   const [user, loading] = useAuthState(auth)
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login")
-    }
-  }, [user, loading, router])
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     // router.push("/login")
+  //   }
+  // }, [user, loading, router])
 
-  if (loading) {
-    return <p className="text-center py-10">Loading...</p>
-  }
+  // if (loading) {
+  //   return <p className="text-center py-10">Loading...</p>
+  // }
 
-  if (!user&& sessionStorage.getItem("user")!=="true") {
-    return null // Prevents rendering while redirecting
-  }
+  // if (!user&& sessionStorage.getItem("user")!=="true") {
+  //   return null // Prevents rendering while redirecting
+  // }
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Our Products</h1>

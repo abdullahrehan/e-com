@@ -254,4 +254,5 @@ const generateAPIFiles = async (jsonFilePath) => {
 };
 
 // Script Execution
+console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
 generateAPIFiles('./api.postman_collection.json');

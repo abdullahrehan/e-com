@@ -1,5 +1,5 @@
 // lib/apiClient.js
-import { showToast } from './toast';
+import { toast } from 'react-toastify';
 
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
@@ -8,57 +8,53 @@ const getAuthToken = () => {
   return null;
 };
 
-const handleErrorResponse = async (response, customErrorHandling) => {
-  let errorData;
-  try {
-    errorData = await response.json();
-  } catch {
-    errorData = { message: 'Failed to parse error response' };
-  }
+// Toast configuration
+const toastConfig = {
+  position: "top-right",
+  autoClose: 5000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+  theme: "colored",
+};
 
-  const errorMessage = errorData.message || 
-                     errorData.error || 
-                     `Request failed with status ${response.status}`;
-
-  if (!customErrorHandling) {
-    showToast.error(errorMessage);
-  }
-
-  throw new Error(errorMessage, {
-    cause: {
-      status: response.status,
-      data: errorData
-    }
+const showSuccessToast = (message) => {
+  toast.success(message, {
+    ...toastConfig,
+    style: { background: '#4BB543', color: 'white' }
   });
 };
 
-const handleSuccessResponse = async (response) => {
-  const contentType = response.headers.get('content-type');
-  return contentType?.includes('application/json') ? response.json() : response.text();
+const showErrorToast = (message) => {
+  toast.error(message, {
+    ...toastConfig,
+    autoClose: 7000,
+    style: { background: '#FF3333', color: 'white' }
+  });
 };
 
-const request = async (endpoint, options = {}) => {
+const apiClient = async (endpoint, options = {}) => {
   const {
     method = 'GET',
     body = null,
     headers = {},
-    formData = false,
-    authRequired = true,
-    customErrorHandling = false,
-    baseURL = process.env.NEXT_PUBLIC_API_BASE_URL
+    requiresAuth = false,
+    baseURL = "http://localhost:80/api"
   } = options;
 
   // Prepare headers
   const requestHeaders = new Headers(headers);
 
-  if (authRequired) {
+  if (requiresAuth) {
     const token = getAuthToken();
     if (token) {
       requestHeaders.append('Authorization', `Bearer ${token}`);
     }
   }
 
-  if (!formData && !requestHeaders.has('Content-Type')) {
+  if (body && !requestHeaders.has('Content-Type')) {
     requestHeaders.append('Content-Type', 'application/json');
   }
 
@@ -70,31 +66,39 @@ const request = async (endpoint, options = {}) => {
   };
 
   if (body) {
-    config.body = formData ? body : JSON.stringify(body);
+    config.body = JSON.stringify(body);
   }
 
   try {
-    const response = await fetch(`${baseURL}${endpoint}`, config);
+    const url=`${baseURL}${endpoint}`
+    console.log(url)
+    const response = await fetch(url, config);
 
     if (!response.ok) {
-      await handleErrorResponse(response, customErrorHandling);
-      return null;
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: 'Failed to parse error response' };
+      }
+
+      const errorMessage = errorData.message || 
+                         errorData.error || 
+                         `Request failed with status ${response.status}`;
+
+      showErrorToast(errorMessage);
+      throw new Error(errorMessage);
     }
 
-    return handleSuccessResponse(response);
+    const contentType = response.headers.get('content-type');
+    return contentType?.includes('application/json') ? response.json() : response.text();
+
   } catch (error) {
-    if (!customErrorHandling) {
-      showToast.error(error.message || 'Network error occurred');
+    if (error.message !== 'Failed to parse error response') {
+      showErrorToast(error.message || 'Network error occurred');
     }
     throw error;
   }
 };
 
-// Public API methods (maintaining same interface as class version)
-export default {
-  get: (endpoint, options) => request(endpoint, { ...options, method: 'GET' }),
-  post: (endpoint, body, options) => request(endpoint, { ...options, method: 'POST', body }),
-  put: (endpoint, body, options) => request(endpoint, { ...options, method: 'PUT', body }),
-  patch: (endpoint, body, options) => request(endpoint, { ...options, method: 'PATCH', body }),
-  delete: (endpoint, options) => request(endpoint, { ...options, method: 'DELETE' }),
-};
+export default apiClient;
